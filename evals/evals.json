@@ -1,0 +1,19 @@
+{
+  "skill_name": "security-intel-brief",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "tomcat-pinned-version-pdf",
+      "prompt": "we run apache tomcat 9.0.85 in production. pull together everything security relevant - CVEs, anything actively exploited, how far behind we are on versions, recent advisories - and make me a PDF I can send to my VP of engineering. last 30 days for news is fine",
+      "expected_output": "A PDF with exec summary, risk rating, CVE/KEV table for Tomcat 9.0.85 (should find KEV CVE-2025-24813), version status vs 9.0.x latest, advisories, sources",
+      "files": []
+    },
+    {
+      "id": 1,
+      "eval_name": "multi-vendor-leadership-brief",
+      "prompt": "I need a security briefing for Monday's leadership meeting covering Fortinet FortiOS 7.2.7 and Atlassian Confluence Data Center 8.5.4. Known exploited vulns, patch status, anything in the news in the last 60 days. PDF please.",
+      "expected_output": "A single PDF covering both products with per-product risk ratings, KEV flags (both vendors have KEV history), latest versions, news with sources",
+      "files": []
+    }
+  ]
+}

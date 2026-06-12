@@ -1,0 +1,80 @@
+<!-- Security Intel Brief — target selection form.
+     Render this with the HTML widget tool. If targets are already known from the
+     user's message, pre-fill by editing the `prefill` array below before rendering.
+     On submit it calls sendPrompt() with a structured selection; if sendPrompt is
+     unavailable it shows the selection text for the user to copy. -->
+<div id="sib-root" style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;max-width:680px;color:var(--text-primary,#1a1a1a);">
+  <style>
+    #sib-root .sib-card{background:var(--bg-elevated,#fff);border:1px solid var(--border,#ddd);border-radius:12px;padding:18px;margin-bottom:12px;}
+    #sib-root h3{margin:0 0 4px;font-size:17px;}
+    #sib-root .sib-sub{font-size:13px;opacity:.7;margin-bottom:14px;}
+    #sib-root table{width:100%;border-collapse:collapse;font-size:13px;}
+    #sib-root th{text-align:left;font-weight:600;padding:4px 6px;opacity:.7;font-size:12px;}
+    #sib-root td{padding:3px 4px;}
+    #sib-root input,#sib-root select{width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid var(--border,#ccc);border-radius:7px;font-size:13px;background:var(--bg,#fff);color:inherit;}
+    #sib-root .sib-row-del{cursor:pointer;border:none;background:none;font-size:15px;opacity:.5;padding:4px;}
+    #sib-root .sib-row-del:hover{opacity:1;color:#c0392b;}
+    #sib-root .sib-btn{cursor:pointer;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;}
+    #sib-root .sib-add{background:var(--bg-muted,#f0f0f0);color:inherit;border:1px dashed var(--border,#bbb);width:100%;margin-top:8px;}
+    #sib-root .sib-go{background:#c0392b;color:#fff;width:100%;font-size:14px;padding:12px;}
+    #sib-root .sib-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    #sib-root label{font-size:12px;font-weight:600;opacity:.75;display:block;margin-bottom:3px;}
+    #sib-root .sib-out{display:none;white-space:pre-wrap;background:var(--bg-muted,#f6f6f6);border-radius:8px;padding:10px;font-size:12px;margin-top:10px;font-family:monospace;}
+  </style>
+
+  <div class="sib-card">
+    <h3>🛡️ Security Intelligence Brief — targets</h3>
+    <div class="sib-sub">Add each vendor / software you want covered. Version is optional but makes CVE matching precise.</div>
+    <table id="sib-targets">
+      <thead><tr><th style="width:30%">Vendor</th><th style="width:38%">Product / software</th><th style="width:24%">Version (optional)</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button class="sib-btn sib-add" onclick="sibAddRow()">＋ Add another product</button>
+  </div>
+
+  <div class="sib-card">
+    <div class="sib-grid">
+      <div><label>Lookback window</label>
+        <select id="sib-window">
+          <option value="30" selected>Last 30 days</option>
+          <option value="60">Last 60 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="all">All relevant (no date limit)</option>
+        </select></div>
+      <div><label>Report title</label><input id="sib-title" placeholder="Security Intelligence Brief"></div>
+    </div>
+    <div style="margin-top:10px;"><label>Audience / context note (optional)</label><input id="sib-aud" placeholder="e.g., monthly CISO staff meeting"></div>
+  </div>
+
+  <button class="sib-btn sib-go" onclick="sibSubmit()">Start research →</button>
+  <div class="sib-out" id="sib-out"></div>
+
+  <script>
+    const prefill = [];  // e.g. [{vendor:"Cisco",product:"IOS XE",version:"17.9.4a"}]
+    function sibAddRow(v){
+      const tb=document.querySelector('#sib-targets tbody');
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><input class="sv" placeholder="e.g., Apache" value="${(v&&v.vendor)||''}"></td>
+        <td><input class="sp" placeholder="e.g., Tomcat" value="${(v&&v.product)||''}"></td>
+        <td><input class="sn" placeholder="e.g., 9.0.85" value="${(v&&v.version)||''}"></td>
+        <td><button class="sib-row-del" onclick="this.closest('tr').remove()">✕</button></td>`;
+      tb.appendChild(tr);
+    }
+    (prefill.length?prefill:[null,null]).forEach(sibAddRow);
+    function sibSubmit(){
+      const rows=[...document.querySelectorAll('#sib-targets tbody tr')].map(tr=>({
+        vendor:tr.querySelector('.sv').value.trim(),
+        product:tr.querySelector('.sp').value.trim(),
+        version:tr.querySelector('.sn').value.trim()
+      })).filter(r=>r.product);
+      if(!rows.length){alert('Add at least one product.');return;}
+      const w=document.getElementById('sib-window').value;
+      const t=document.getElementById('sib-title').value.trim()||'Security Intelligence Brief';
+      const a=document.getElementById('sib-aud').value.trim();
+      const lines=rows.map(r=>`- ${r.vendor||'(vendor unknown)'} ${r.product}${r.version?' version '+r.version:' (all supported versions)'}`);
+      const msg=`Run the security intelligence brief with these targets:\n${lines.join('\n')}\nLookback window: ${w==='all'?'all relevant, no date limit':'last '+w+' days'}\nReport title: ${t}${a?'\nAudience note: '+a:''}`;
+      if(typeof sendPrompt==='function'){sendPrompt(msg);}
+      else{const o=document.getElementById('sib-out');o.style.display='block';o.textContent='Copy this into chat:\n\n'+msg;}
+    }
+  </script>
+</div>
